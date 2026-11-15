@@ -1,0 +1,83 @@
+PRACTICAL 1: UBER FARE PREDICTION (LINEAR REGRESSION + RANDOM FOREST)
+------------------------------------------------------------
+
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LinearRegression
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.metrics import r2_score, mean_squared_error, mean_absolute_error
+
+df = pd.read_csv("uber.csv")
+df.head()
+df.tail()
+df.info()
+df.shape
+df.isnull().sum()
+
+df = df.dropna()
+df.isnull().sum()
+df = df.drop(columns=["Unnamed: 0", "key"], errors="ignore")
+df["pickup_datetime"] = pd.to_datetime(df["pickup_datetime"])
+
+df = df[df["fare_amount"] > 0]
+df = df[df["passenger_count"] > 0]
+df = df[(df["pickup_longitude"] >= -74.5) & (df["pickup_longitude"] <= -72.5)]
+df = df[(df["pickup_latitude"] >= 40) & (df["pickup_latitude"] <= 42)]
+df = df[df["fare_amount"] < 100]
+
+print(df.corr(numeric_only=True))
+
+X = df[["pickup_longitude", "pickup_latitude",
+         "dropoff_longitude", "dropoff_latitude",
+         "passenger_count"]]
+y = df["fare_amount"]
+
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.2, random_state=42
+)
+
+lr = LinearRegression()
+lr.fit(X_train, y_train)
+pred1 = lr.predict(X_test)
+
+rf = RandomForestRegressor(n_estimators=10, random_state=42)
+rf.fit(X_train, y_train)
+pred2 = rf.predict(X_test)
+
+print("Linear Regression R2:", r2_score(y_test, pred1))
+print("Linear Regression RMSE:", np.sqrt(mean_squared_error(y_test, pred1)))
+print("Random Forest R2:", r2_score(y_test, pred2))
+print("Random Forest RMSE:", np.sqrt(mean_squared_error(y_test, pred2)))
+
+print("Linear Regression")
+print("R2 Score:", r2_score(y_test, pred1))
+print("RMSE:", np.sqrt(mean_squared_error(y_test, pred1)))
+print("MAE:", mean_absolute_error(y_test, pred1))
+
+print("Random Forest")
+print("R2 Score:", r2_score(y_test, pred2))
+print("RMSE:", np.sqrt(mean_squared_error(y_test, pred2)))
+print("MAE:", mean_absolute_error(y_test, pred2))
+
+# Outlier detection using Boxplot and IQR
+plt.boxplot(df["fare_amount"])
+plt.show()
+
+Q1 = df["fare_amount"].quantile(0.25)
+Q3 = df["fare_amount"].quantile(0.75)
+IQR = Q3 - Q1
+lower = Q1 - 1.5 * IQR
+upper = Q3 + 1.5 * IQR
+
+outliers = df[(df["fare_amount"] < lower) | (df["fare_amount"] > upper)]
+print("Total Outliers:", len(outliers))
+
+df = df[(df["fare_amount"] >= lower) & (df["fare_amount"] <= upper)]
+print("Remaining Rows:", len(df))
+
+corr = df.corr(numeric_only=True)
+sns.heatmap(corr, annot=True, cmap="coolwarm")
+plt.show()

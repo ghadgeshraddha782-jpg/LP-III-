@@ -1,0 +1,142 @@
+
+import java.util.*;
+
+public class QuickSort {
+
+    static long detComp = 0, detSwap = 0;
+    static long randComp = 0, randSwap = 0;
+
+    // Swap function
+    static void swap(int arr[], int i, int j, boolean random) {
+        if (i != j) {
+            int temp = arr[i];
+            arr[i] = arr[j];
+            arr[j] = temp;
+
+            if (random)
+                randSwap++;
+            else
+                detSwap++;
+        }
+    }
+
+    // Partition function
+    static int partition(int arr[], int low, int high, boolean random) {
+
+        int pivot = arr[high];
+        int i = low - 1;
+
+        for (int j = low; j < high; j++) {
+
+            if (random)
+                randComp++;
+            else
+                detComp++;
+
+            if (arr[j] <= pivot) {
+                i++;
+                swap(arr, i, j, random);
+            }
+        }
+
+        swap(arr, i + 1, high, random);
+
+        return i + 1;
+    }
+
+    // Deterministic Quick Sort
+    static void quickSort(int arr[], int low, int high) {
+
+        if (low < high) {
+            int pi = partition(arr, low, high, false);
+
+            quickSort(arr, low, pi - 1);
+            quickSort(arr, pi + 1, high);
+        }
+    }
+
+    // Randomized Partition
+    static int randomPartition(int arr[], int low, int high) {
+
+        Random r = new Random();
+        int randomIndex = low + r.nextInt(high - low + 1);
+
+        swap(arr, randomIndex, high, true);
+
+        return partition(arr, low, high, true);
+    }
+
+    // Randomized Quick Sort
+    static void randomizedQuickSort(int arr[], int low, int high) {
+
+        if (low < high) {
+            int pi = randomPartition(arr, low, high);
+
+            randomizedQuickSort(arr, low, pi - 1);
+            randomizedQuickSort(arr, pi + 1, high);
+        }
+    }
+
+    public static void main(String args[]) {
+
+        Scanner sc = new Scanner(System.in);
+
+        System.out.print("Enter number of elements: ");
+        int n = sc.nextInt();
+
+        int arr1[] = new int[n];
+        int arr2[] = new int[n];
+
+        System.out.println("Enter array elements:");
+
+        for (int i = 0; i < n; i++) {
+            arr1[i] = sc.nextInt();
+            arr2[i] = arr1[i];
+        }
+
+        // Deterministic Analysis
+        long start = System.nanoTime();
+        quickSort(arr1, 0, n - 1);
+        long end = System.nanoTime();
+
+        long detTime = end - start;
+
+        System.out.println("\n--- Deterministic Quick Sort ---");
+        System.out.println("Sorted Array: " + Arrays.toString(arr1));
+        System.out.println("Comparisons: " + detComp);
+        System.out.println("Swaps: " + detSwap);
+        System.out.println("Execution Time: " + detTime + " ns");
+
+        // Randomized Analysis
+        start = System.nanoTime();
+        randomizedQuickSort(arr2, 0, n - 1);
+        end = System.nanoTime();
+
+        long randTime = end - start;
+
+        System.out.println("\n--- Randomized Quick Sort ---");
+        System.out.println("Sorted Array: " + Arrays.toString(arr2));
+        System.out.println("Comparisons: " + randComp);
+        System.out.println("Swaps: " + randSwap);
+        System.out.println("Execution Time: " + randTime + " ns");
+
+        // Final Analysis
+        System.out.println("\n--- Efficiency Analysis ---");
+
+        if (detTime < randTime)
+            System.out.println("Deterministic is faster in this run.");
+        else if (randTime < detTime)
+            System.out.println("Randomized is faster in this run.");
+        else
+            System.out.println("Both have equal execution time.");
+
+        if (detComp < randComp)
+            System.out.println("Deterministic has fewer comparisons.");
+        else if (randComp < detComp)
+            System.out.println("Randomized has fewer comparisons.");
+        else
+            System.out.println("Both have equal comparisons.");
+
+        sc.close();
+    }
+}

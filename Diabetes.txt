@@ -1,0 +1,43 @@
+import pandas as pd
+import numpy as np
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.metrics import confusion_matrix, accuracy_score, precision_score, recall_score
+
+df = pd.read_csv("diabetes.csv")
+df
+df.isnull().sum()
+df.shape
+
+X = df.drop("Outcome", axis=1)
+Y = df["Outcome"]
+
+X_train, X_test, Y_train, Y_test = train_test_split(
+    X, Y, test_size=0.2, random_state=42
+)
+
+sc = StandardScaler()
+X_train = sc.fit_transform(X_train)
+X_test = sc.transform(X_test)
+
+model = KNeighborsClassifier(n_neighbors=7)
+model.fit(X_train, Y_train)
+
+pred = model.predict(X_test)
+pred
+
+cm = confusion_matrix(Y_test, pred)
+cm
+
+acc = accuracy_score(Y_test, pred)
+acc
+
+error = 1 - acc
+error
+
+precision = precision_score(Y_test, pred)
+precision
+
+recall = recall_score(Y_test, pred)
+recall
